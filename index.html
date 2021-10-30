@@ -1,0 +1,147 @@
+﻿<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome file</title>
+  <link rel="stylesheet" href="https://stackedit.io/style.css" />
+</head>
+
+<body class="stackedit">
+  <div class="stackedit__left">
+    <div class="stackedit__toc">
+      
+<ul>
+<li><a href="#lamp-on-mac-with-homebrew">LAMP on Mac with Homebrew</a>
+<ul>
+<li><a href="#apache">Apache</a></li>
+<li><a href="#php">PHP</a></li>
+<li><a href="#ssl-cert">SSL CERT</a></li>
+</ul>
+</li>
+</ul>
+
+    </div>
+  </div>
+  <div class="stackedit__right">
+    <div class="stackedit__html">
+      <h1 id="lamp-on-mac-with-homebrew">LA<s>M</s>P on Mac with Homebrew</h1>
+<p>This is a guide I wrote so that I can set up an Apache, PHP server for local development. I don’t use local MySQL so I have not included this.</p>
+<p>The end result will allow me to access my development sites at domains like <code>domain.lo</code> or <code>sub.domain.lo</code> and will have self signed certs for each domain.</p>
+<p>I am aware that there may be some parts of this that can be done more efficiently - this was written as I figured some things out and needed to get it up and running and be able to be reproduced for future use.</p>
+<p>This guide assumes a folder <code>/Users/YOUR_USERNAME/ApacheServer/</code> for all your files. You can update this to match your own location.</p>
+<h2 id="apache">Apache</h2>
+<p><strong>INSTALLATION</strong></p>
+<ol>
+<li>Stop and unload the built in Apache by running the following two commands<br>
+<code>sudo apachectl stop</code><br>
+<code>sudo launchctl unload -w /System/Library/LaunchDaemons/org.apache.httpd.plist 2&gt;/dev/null</code></li>
+<li>Install httpd (Apache) with Homebrew<br>
+<code>brew install httpd</code></li>
+<li>Start background service and start Apache<br>
+<code>brew services start httpd</code><br>
+<code>sudo apachectl start</code></li>
+<li>When opening now <a href="http://localhost:8080/">http://localhost:8080/</a> you should see “It works!”</li>
+<li>Next get your username with <code>whoami</code> - you will need this throughout the process</li>
+</ol>
+<p><strong>CONFIGURATION</strong></p>
+<p>Open the file <code>/opt/homebrew/etc/httpd/httpd.conf</code> and change the following</p>
+<ol>
+<li>Listen 8080 -&gt; <code>Listen 80</code></li>
+<li>The path for DocumentRoot and Directory “/usr/local/var/www” -&gt; <code>DocumentRoot /Users/YOUR_USERNAME/ApacheServer</code><br>
+[All sites must be in or below this folder - put them in the format domain.lo for consistency]</li>
+<li>Inside the previously edited “&lt;Directory “/Users/YOUR_USERNAME/Sites”&gt;” change AllowOverride None -&gt; <code>AllowOverride All</code></li>
+<li>Uncomment #LoadModule rewrite_module lib/httpd/modules/mod_rewrite.so</li>
+<li>Uncomment #LoadModule vhost_alias_module lib/httpd/modules/mod_vhost_alias.so</li>
+<li>Uncomment #Include /usr/local/etc/httpd/extra/httpd-vhosts.conf</li>
+<li>Uncomment #Include /opt/homebrew/etc/httpd/extra/httpd-vhosts.conf</li>
+<li>User _www -&gt; <code>User YOUR_USERNAME</code></li>
+<li>Group _www -&gt; <code>Group staff</code></li>
+<li>Uncomment #ServerName <a href="http://www.example.com:8080">www.example.com:8080</a> and change it to <code>localhost:80</code></li>
+<li>Open <code>/opt/homebrew/etc/httpd/extra/httpd-vhosts.conf</code></li>
+<li>Remove the existing virtual hosts</li>
+<li>replace with the option you used above IncludeOptional IncludeOptional <code>/Users/YOUR_USERNAME/ApacheServer/*/httpd-vhost.conf</code></li>
+<li>In your webroot <code>/Users/YOUR_USERNAME/ApacheServer/</code> create a folder for each site like <code>domain1.lo</code> and <code>domain2.lo</code></li>
+<li>Create a folder in the root of each site called <code>logs</code></li>
+<li>Create a file in the root of each site you want to serve named <code>httpd-vhost.conf</code></li>
+<li>Add the following to the file created above:<br>
+<code>&lt;VirtualHost *:80&gt;</code><br>
+<code>DocumentRoot "/Users/YOUR_USERNAME/ApacheServer/domain.lo"</code><br>
+<code>ServerName domain.lo</code><br>
+<code>ErrorLog "/Users/YOUR_USERNAME/ApacheServer/domain.lo/logs/error_log"</code><br>
+<code>CustomLog "/Users/YOUR_USERNAME/ApacheServer/domain.lo/logs/access_log" common</code><br>
+<code>&lt;/VirtualHost&gt;</code></li>
+<li>Open <code>/private/etc/hosts</code></li>
+<li>Add to the end: <code>127.0.0.1 domain.lo</code></li>
+<li>Restart apache server with <code>sudo apachectl restart</code>.</li>
+<li>Open <a href="http://localhost">http://localhost</a> and should see the documents from your Sites directory.</li>
+</ol>
+<h2 id="php">PHP</h2>
+<p><strong>INSTALLATION</strong></p>
+<ol>
+<li>Install the php formula with Homebrew.<br>
+<code>brew install php</code></li>
+<li>Start PHP background service<br>
+<code>brew services start php</code></li>
+</ol>
+<p><strong>CONFIGURATION</strong><br>
+Open the file <code>/opt/homebrew/etc/httpd/httpd.conf</code> and change the following</p>
+<ol>
+<li>Insert after the last LoadModule (probably mod_rewrite.so):<br>
+<code>LoadModule php_module /opt/homebrew/opt/php/lib/httpd/modules/libphp.so</code></li>
+<li>DirectoryIndex index.html -&gt; <code>DirectoryIndex index.html index.php</code></li>
+<li>Insert after the previously edited “DirectoryIndex” area and before the htaccess/htpasswd “IfModule” area:<br>
+<code>&lt;FilesMatch \.php$&gt;</code><br>
+<code>SetHandler application/x-httpd-php</code><br>
+<code>&lt;/FilesMatch&gt;</code></li>
+<li>Restart your Apache server <code>sudo apachectl restart</code></li>
+</ol>
+<h2 id="ssl-cert">SSL CERT</h2>
+<p><strong>CONFIGURATION</strong></p>
+<ol>
+<li>Create directory <code>ssl</code> in <code>/opt/homebrew/etc/httpd/</code> if not there</li>
+<li>Create the conf file 'sudo touch /opt/homebrew/etc/httpd/ssl/domain.lo.conf`</li>
+<li>Add this to the conf you just created:<br>
+<code>[req]</code><br>
+<code>default_bits = 1024</code><br>
+<code>distinguished_name = req_distinguished_name</code><br>
+<code>req_extensions = v3_req</code></li>
+</ol>
+<p><code>[req_distinguished_name]</code></p>
+<p><code>[v3_req]</code><br>
+<code>basicConstraints = CA:FALSE</code><br>
+<code>keyUsage = nonRepudiation, digitalSignature, keyEncipherment</code><br>
+<code>subjectAltName = @alt_names</code></p>
+<p><code>[alt_names]</code><br>
+<code>DNS.1 = domain.lo</code></p>
+<ol start="3">
+<li>Change <code>domain.lo</code> to the correct domain and then Run the following commands<br>
+<code>sudo openssl genrsa -out /opt/homebrew/etc/httpd/server.key 2048</code><br>
+<code>sudo openssl genrsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.key 2048</code><br>
+<code>sudo openssl rsa -in /opt/homebrew/etc/httpd/ssl/domain.lo.key -out /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa</code></li>
+<li><code>sudo openssl genrsa -out /opt/homebrew/etc/httpd/server.key 2048</code></li>
+<li><code>sudo openssl genrsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.key 2048</code></li>
+<li><code>sudo openssl rsa -in /opt/homebrew/etc/httpd/ssl/domain.lo.key -out /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa</code></li>
+<li><code>sudo openssl req -new -key /opt/homebrew/etc/httpd/server.key -subj "/C=us/ST=wy/L=Cheyenne/O=Assessify/CN=domain.lo/emailAddress=webmaster@localhost/" -out /opt/homebrew/etc/httpd/server.csr</code></li>
+<li><code>sudo openssl req -new -key /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa -subj "/C=/ST=/L=/O=/CN=domain.lo/" -out /opt/homebrew/etc/httpd/ssl/domain.lo.csr -config /opt/homebrew/etc/httpd/ssl/domain.lo.conf</code></li>
+</ol>
+<p><strong>Note</strong>: Complete the values  <code>C= ST= L= O= CN=</code>  to reflect your own organizational structure, where:</p>
+<ul>
+<li><code>C=</code>  eq. Country: The two-letter ISO abbreviation for your country.</li>
+<li><code>ST=</code>  eq. State or Province: The state or province where your organization is legally located.</li>
+<li><code>L=</code>  eq. City or Locality: The city where your organization is legally located.</li>
+<li><code>O=</code>  eq. Organization: he exact legal name of your organization.</li>
+<li><code>CN=</code>  eq. Common Name: The fully qualified domain name for your web server</li>
+</ul>
+<ol start="9">
+<li><code>sudo openssl x509 -req -days 365 -in /opt/homebrew/etc/httpd/server.csr -signkey /opt/homebrew/etc/httpd/server.key -out /opt/homebrew/etc/httpd/server.crt</code></li>
+<li><code>sudo openssl x509 -req -extensions v3_req -days 365 -in /opt/homebrew/etc/httpd/ssl/domain.lo.csr -signkey /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.crt -extfile /opt/homebrew/etc/httpd/ssl/domain.lo.conf</code></li>
+<li>Add the cert to the Keychain so it will be trusted <code>sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /opt/homebrew/etc/httpd/ssl/domain.lo.crt</code></li>
+</ol>
+
+    </div>
+  </div>
+</body>
+
+</html>
