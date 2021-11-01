@@ -78,25 +78,26 @@ Open the file `/opt/homebrew/etc/httpd/httpd.conf` and change the following
 4. Restart your Apache server `sudo apachectl restart`
 
 ## SSL CERT
-
+Also see the [Quick Access](#qassl)
 **CONFIGURATION**
 1. Create directory `ssl` in `/opt/homebrew/etc/httpd/` if not there
-2. Create the conf file 'sudo touch /opt/homebrew/etc/httpd/ssl/domain.lo.conf`
+2. Create the conf file `sudo touch /opt/homebrew/etc/httpd/ssl/domain.lo.conf`
 3. Add this to the conf you just created:
-`[req]`
-`default_bits = 1024`
-`distinguished_name = req_distinguished_name`
-`req_extensions = v3_req`
 
-`[req_distinguished_name]`
-
-`[v3_req]`
-`basicConstraints = CA:FALSE`
-`keyUsage = nonRepudiation, digitalSignature, keyEncipherment`
-`subjectAltName = @alt_names`
-
-`[alt_names]`
-`DNS.1 = domain.lo`
+    `[req]`
+    `default_bits = 1024`
+    `distinguished_name = req_distinguished_name`
+    `req_extensions = v3_req`
+    
+    `[req_distinguished_name]`
+    
+    `[v3_req]`
+    `basicConstraints = CA:FALSE`
+    `keyUsage = nonRepudiation, digitalSignature, keyEncipherment`
+    `subjectAltName = @alt_names`
+    
+    `[alt_names]`
+    `DNS.1 = domain.lo`
 
 3. Change `domain.lo` to the correct domain and then Run the following commands
 `sudo openssl genrsa -out /opt/homebrew/etc/httpd/server.key 2048`
@@ -118,3 +119,45 @@ Open the file `/opt/homebrew/etc/httpd/httpd.conf` and change the following
 9. `sudo openssl x509 -req -days 365 -in /opt/homebrew/etc/httpd/server.csr -signkey /opt/homebrew/etc/httpd/server.key -out /opt/homebrew/etc/httpd/server.crt`
 10. `sudo openssl x509 -req -extensions v3_req -days 365 -in /opt/homebrew/etc/httpd/ssl/domain.lo.csr -signkey /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.crt -extfile /opt/homebrew/etc/httpd/ssl/domain.lo.conf`
 11. Add the cert to the Keychain so it will be trusted `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /opt/homebrew/etc/httpd/ssl/domain.lo.crt`
+
+## <a name="qassl"></a>Quick Access SSL Commands
+
+Copy the code below to your favourite IDE and replace domain.lo with the domain you want to use. 
+
+**Step 1**
+Enter the following command:
+`sudo cat > /opt/homebrew/etc/httpd/ssl/domain.lo.conf`
+
+**Step 2**
+Paste the config file (without the ##### lines) followed by `CTRL+D` to save the file.
+
+######CONFIG FILE######
+
+    [req]
+    default_bits = 1024
+    distinguished_name = req_distinguished_name
+    req_extensions = v3_req
+    
+    [req_distinguished_name]
+    
+    [v3_req]
+    basicConstraints = CA:FALSE
+    keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+    subjectAltName = @alt_names
+    
+    [alt_names]
+    DNS.1 = domain.lo
+
+######END CONFIG FILE######
+
+**Step 3**
+Paste the following commands
+
+    sudo openssl genrsa -out /opt/homebrew/etc/httpd/server.key 2048
+    sudo openssl genrsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.key 2048
+    sudo openssl rsa -in /opt/homebrew/etc/httpd/ssl/domain.lo.key -out /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa
+    sudo openssl req -new -key /opt/homebrew/etc/httpd/server.key -subj "/C=us/ST=wy/L=Cheyenne/O=Assessify/CN=domain.lo/emailAddress=webmaster@localhost/" -out /opt/homebrew/etc/httpd/server.csr
+    sudo openssl req -new -key /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa -subj "/C=us/ST=wy/L=Cheyenne/O=Assessify/CN=domain.lo/" -out /opt/homebrew/etc/httpd/ssl/domain.lo.csr -config /opt/homebrew/etc/httpd/ssl/domain.lo.conf
+    sudo openssl x509 -req -days 365 -in /opt/homebrew/etc/httpd/server.csr -signkey /opt/homebrew/etc/httpd/server.key -out /opt/homebrew/etc/httpd/server.crt
+    sudo openssl x509 -req -extensions v3_req -days 365 -in /opt/homebrew/etc/httpd/ssl/domain.lo.csr -signkey /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.crt -extfile /opt/homebrew/etc/httpd/ssl/domain.lo.conf
+    sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /opt/homebrew/etc/httpd/ssl/domain.lo.crt
