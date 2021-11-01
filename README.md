@@ -1,6 +1,8 @@
 # LA~~M~~P on Mac with Homebrew
 
-This is a guide I wrote so that I can set up an Apache, PHP server for local development. I don't use local MySQL so I have not included this. 
+Written with the help of [stackedit.io](https://stackedit.io/).
+
+This is a guide I wrote so that I can set up an Apache, PHP server for local development. I don't use local MySQL so I have not included this.
 
 The end result will allow me to access my development sites at domains like `domain.lo` or `sub.domain.lo` and will have self signed certs for each domain.
 
