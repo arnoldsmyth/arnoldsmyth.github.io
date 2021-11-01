@@ -78,7 +78,7 @@ Open the file `/opt/homebrew/etc/httpd/httpd.conf` and change the following
 4. Restart your Apache server `sudo apachectl restart`
 
 ## SSL CERT
-Also see the [Quick Access](#qassl)
+Also see the [Quick Access](#quick-access-ssl-commands)
 **CONFIGURATION**
 1. Create directory `ssl` in `/opt/homebrew/etc/httpd/` if not there
 2. Create the conf file `sudo touch /opt/homebrew/etc/httpd/ssl/domain.lo.conf`
@@ -120,7 +120,7 @@ Also see the [Quick Access](#qassl)
 10. `sudo openssl x509 -req -extensions v3_req -days 365 -in /opt/homebrew/etc/httpd/ssl/domain.lo.csr -signkey /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.crt -extfile /opt/homebrew/etc/httpd/ssl/domain.lo.conf`
 11. Add the cert to the Keychain so it will be trusted `sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /opt/homebrew/etc/httpd/ssl/domain.lo.crt`
 
-## <a name="qassl"></a>Quick Access SSL Commands
+## Quick Access SSL Commands
 
 Copy the code below to your favourite IDE and replace domain.lo with the domain you want to use. 
 

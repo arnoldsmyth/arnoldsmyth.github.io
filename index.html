@@ -18,7 +18,7 @@
 <li><a href="#apache">Apache</a></li>
 <li><a href="#php">PHP</a></li>
 <li><a href="#ssl-cert">SSL CERT</a></li>
-<li><a href="#a-nameqasslaquick-access-ssl-commands">Quick Access SSL Commands</a></li>
+<li><a href="#quick-access-ssl-commands">Quick Access SSL Commands</a></li>
 </ul>
 </li>
 </ul>
@@ -99,7 +99,7 @@ Open the file <code>/opt/homebrew/etc/httpd/httpd.conf</code> and change the fol
 <li>Restart your Apache server <code>sudo apachectl restart</code></li>
 </ol>
 <h2 id="ssl-cert">SSL CERT</h2>
-<p>Also see the <a href="#qassl">Quick Access</a><br>
+<p>Also see the <a href="#quick-access-ssl-commands">Quick Access</a><br>
 <strong>CONFIGURATION</strong></p>
 <ol>
 <li>
@@ -157,7 +157,7 @@ Open the file <code>/opt/homebrew/etc/httpd/httpd.conf</code> and change the fol
 <li><code>sudo openssl x509 -req -extensions v3_req -days 365 -in /opt/homebrew/etc/httpd/ssl/domain.lo.csr -signkey /opt/homebrew/etc/httpd/ssl/domain.lo.key.rsa -out /opt/homebrew/etc/httpd/ssl/domain.lo.crt -extfile /opt/homebrew/etc/httpd/ssl/domain.lo.conf</code></li>
 <li>Add the cert to the Keychain so it will be trusted <code>sudo security add-trusted-cert -d -r trustRoot -k /Library/Keychains/System.keychain /opt/homebrew/etc/httpd/ssl/domain.lo.crt</code></li>
 </ol>
-<h2 id="a-nameqasslaquick-access-ssl-commands"><a></a>Quick Access SSL Commands</h2>
+<h2 id="quick-access-ssl-commands">Quick Access SSL Commands</h2>
 <p>Copy the code below to your favourite IDE and replace domain.lo with the domain you want to use.</p>
 <p><strong>Step 1</strong><br>
 Enter the following command:<br>
